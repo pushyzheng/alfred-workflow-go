@@ -23,28 +23,35 @@ func Run() {
 		Cmd:   *cmd,
 		Query: *query,
 	}
-	defer handleErr(&wf)
-	if *cmd == "" {
+	execute(&wf)
+}
+
+func execute(wf *Workflow) {
+	defer handleErr(wf)
+	if wf.Cmd == "" {
 		panic(errors.New("command cannot be empty"))
 	}
-	handler, ok := GetView(*cmd)
+	handler, ok := GetView(wf.Cmd)
 	if !ok {
-		panic(fmt.Errorf("unknown cmd: %s", *cmd))
+		panic(fmt.Errorf("unknown cmd: %s", wf.Cmd))
 	}
-	handler.Func(&wf)
+	handler.Func(wf)
 	fmt.Println(wf.Render())
 }
 
 func handleErr(wf *Workflow) {
 	if err := recover(); err != nil {
 		log.Println("main exec error:", err)
+		var msg string
 		switch err.(type) {
 		case error:
+			msg = err.(error).Error()
 			fmt.Println(wf.RenderError(err.(error)))
 		case string:
-			fmt.Println(wf.RenderError(errors.New(err.(string))))
+			msg = err.(string)
 		default:
-			fmt.Println(wf.RenderError(errors.New("unexpected type")))
+			msg = "unexpected type"
 		}
+		fmt.Println(wf.RenderError(errors.New(fmt.Sprintf("error: %s", msg))))
 	}
 }

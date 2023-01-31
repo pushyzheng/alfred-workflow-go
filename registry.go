@@ -6,18 +6,21 @@ import (
 )
 
 const (
+	ListCommandsName   = "list"
 	SearchContainsMode = "contains"
 	SearchStartMode    = "start"
 )
 
 type ViewFunc func(wf *Workflow)
 
-type ViewHandler struct {
-	Name string
-	Func ViewFunc
+type View struct {
+	Name       string
+	Func       ViewFunc
+	Desc       string
+	NeedsQuery bool
 }
 
-var views = map[string]ViewHandler{}
+var views = map[string]*View{}
 
 func RegisterView(name string, fn ViewFunc) {
 	if len(name) == 0 {
@@ -29,22 +32,27 @@ func RegisterView(name string, fn ViewFunc) {
 	if _, exists := views[name]; exists {
 		log.Fatalln("the view function is registered already")
 	}
-	views[name] = ViewHandler{
+	v := View{
 		Name: name,
 		Func: fn,
 	}
+	Register(v)
 }
 
-func GetView(name string) (ViewHandler, bool) {
+func Register(view View) {
+	views[view.Name] = &view
+}
+
+func GetView(name string) (*View, bool) {
 	vh, ok := views[name]
 	return vh, ok
 }
 
-func SearchView(q string, mode string) []ViewHandler {
+func SearchView(q string, mode string) []*View {
 	if mode == "" {
 		mode = SearchContainsMode
 	}
-	var res []ViewHandler
+	var res []*View
 	for name, h := range views {
 		var ok bool
 		if mode == SearchContainsMode {
@@ -57,4 +65,8 @@ func SearchView(q string, mode string) []ViewHandler {
 		}
 	}
 	return res
+}
+
+func init() {
+	RegisterView(ListCommandsName, DisplayCommands)
 }

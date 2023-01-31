@@ -10,11 +10,16 @@ Simple application:
 package main
 
 import (
+	"fmt"
 	"github.com/pushyzheng/alfred-workflow-go"
 )
 
 func Foo(wf *alfred.Workflow) {
-	wf.AddTitleItem("Hello World")
+	if q, ok := wf.GetQuery(); ok {
+		wf.AddTitleItem(fmt.Sprintf("Hello %s!", q))
+	} else {
+		wf.AddTitleItem("Hello World!")
+	}
 }
 
 func main() {
@@ -24,11 +29,12 @@ func main() {
 func init() {
 	alfred.RegisterView("foo", Foo)
 }
+
 ```
 
 the run command:
 
 ```shell
 $ go build main.go
-$ ./main -cmd foo -query "{query}"
+$ ./main -cmd foo -query Golang
 ```

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 const None = "none"
@@ -34,11 +35,31 @@ type ModItem struct {
 	Arg      string `json:"arg"`
 }
 
+type Queries struct {
+	Values []string
+}
+
 func (wf *Workflow) GetQuery() (string, bool) {
 	if !wf.HasQuery() {
 		return "", false
 	}
 	return wf.Query, true
+}
+
+func (wf *Workflow) GetQueries() (Queries, bool) {
+	var queries Queries
+	if !wf.HasQuery() {
+		return queries, false
+	}
+	q := wf.Query
+	if len(q) == 0 {
+		return queries, false
+	}
+	values := strings.Split(q, " ")
+	if len(values) == 0 {
+		return queries, false
+	}
+	return Queries{Values: values}, true
 }
 
 func (wf *Workflow) HasQuery() bool {
@@ -51,8 +72,9 @@ func (wf *Workflow) Add(item Item) {
 
 func (wf *Workflow) AddTitleItem(title string) {
 	item := Item{
-		Title: title,
-		Arg:   title,
+		Title:        title,
+		Arg:          title,
+		Autocomplete: title,
 	}
 	wf.Add(item)
 }
@@ -112,5 +134,37 @@ func (i *Item) setMod(k string, item ModItem) {
 	if i.Mods == nil {
 		i.Mods = make(map[string]ModItem)
 	}
+	if item.Arg == "" {
+		item.Arg = item.SubTitle
+	}
 	i.Mods[k] = item
+}
+
+func (q *Queries) Len() int {
+	return len(q.Values)
+}
+
+func (q *Queries) First() string {
+	return q.Values[0]
+}
+
+func (q *Queries) Second() string {
+	if q.Len() != 2 {
+		panic("lack of second param")
+	}
+	return q.Values[1]
+}
+
+func (q *Queries) Third() string {
+	if q.Len() != 2 {
+		panic("lack of third param")
+	}
+	return q.Values[1]
+}
+
+func (q *Queries) Get(i int) string {
+	if q.Len() != i+1 {
+		panic(fmt.Sprintf("lack of param: %d", i))
+	}
+	return q.Values[i]
 }
