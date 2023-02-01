@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -64,6 +65,25 @@ func (wf *Workflow) GetQueries() (Queries, bool) {
 
 func (wf *Workflow) HasQuery() bool {
 	return len(wf.Query) > 0 && wf.Query != None
+}
+
+func (wf *Workflow) MustEnv(k string) string {
+	if s, err := wf.GetEnv(k); err != nil {
+		panic(err)
+	} else {
+		return s
+	}
+}
+
+func (wf *Workflow) GetEnv(k string) (string, error) {
+	if len(k) == 0 {
+		return "", errors.New("the key cannot be empty")
+	}
+	v := os.Getenv(k)
+	if len(v) == 0 {
+		return "", fmt.Errorf("the '%s' key not in env", k)
+	}
+	return v, nil
 }
 
 func (wf *Workflow) Add(item Item) {
