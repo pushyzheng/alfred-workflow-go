@@ -46,7 +46,6 @@ func handleErr(wf *Workflow) {
 		switch err.(type) {
 		case error:
 			msg = err.(error).Error()
-			fmt.Println(wf.RenderError(err.(error)))
 		case string:
 			msg = err.(string)
 		default:

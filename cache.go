@@ -8,7 +8,7 @@ import (
 
 var cache *diskache.Diskache
 
-func CacheData[T any](k string, loader func() T) T {
+func CacheData[T any](k string, loader func() T) (T, bool) {
 	data, exists := cache.Get(k)
 	var res T
 	var err error
@@ -24,9 +24,12 @@ func CacheData[T any](k string, loader func() T) T {
 		if err != nil {
 			panic(err)
 		}
-		_ = cache.Set(k, b)
+		err = cache.Set(k, b)
+		if err != nil {
+			log.Printf("error: set cache error, key = %s", k)
+		}
 	}
-	return res
+	return res, exists
 }
 
 func init() {
