@@ -169,17 +169,17 @@ func (q *Queries) First() string {
 }
 
 func (q *Queries) Second() string {
-	if q.Len() != 2 {
+	if q.Len() < 2 {
 		panic("lack of second param")
 	}
 	return q.Values[1]
 }
 
 func (q *Queries) Third() string {
-	if q.Len() != 2 {
+	if q.Len() < 3 {
 		panic("lack of third param")
 	}
-	return q.Values[1]
+	return q.Values[2]
 }
 
 func (q *Queries) Get(i int) string {
