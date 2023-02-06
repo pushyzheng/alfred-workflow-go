@@ -1,5 +1,11 @@
 package alfred
 
+import "time"
+
+func GetTimestamp() int64 {
+	return time.Now().UnixMilli()
+}
+
 func FilterSlice[T any](data []T, fn func(v T) bool) []T {
 	var result []T
 	for _, v := range data {

@@ -24,20 +24,33 @@ func CacheExpiredData[T any](k string, expired int64, loader func() T) (T, bool)
 		}
 	} else {
 		res = loader()
-		b, err := json.Marshal(res)
-		if err != nil {
-			panic(err)
-		}
-		if expired == -1 {
-			err = cache.Set(k, b)
-		} else {
-			err = cache.SetExpired(k, b, expired)
-		}
-		if err != nil {
-			log.Printf("error: set cache error, key = %s", k)
-		}
+		SetCacheJsonData(k, expired, res)
 	}
 	return res, exists
+}
+
+func GetCacheData(k string) ([]byte, bool) {
+	return cache.Get(k)
+}
+
+func SetCacheJsonData(k string, expired int64, data any) {
+	b, err := json.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
+	SetCacheData(k, expired, b)
+}
+
+func SetCacheData(k string, expired int64, data []byte) {
+	var err error
+	if expired == -1 {
+		err = cache.Set(k, data)
+	} else {
+		err = cache.SetExpired(k, data, expired)
+	}
+	if err != nil {
+		log.Printf("error: set cache error, key = %s", k)
+	}
 }
 
 func init() {

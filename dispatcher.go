@@ -31,12 +31,14 @@ func execute(wf *Workflow) {
 	if wf.Cmd == "" {
 		panic(errors.New("command cannot be empty"))
 	}
-	handler, ok := GetView(wf.Cmd)
+	view, ok := GetView(wf.Cmd)
 	if !ok {
 		panic(fmt.Errorf("unknown cmd: %s", wf.Cmd))
 	}
-	handler.Func(wf)
-	fmt.Println(wf.Render())
+	view.Func(wf)
+	if !view.IsCli {
+		fmt.Println(wf.Render())
+	}
 }
 
 func handleErr(wf *Workflow) {
