@@ -10,7 +10,7 @@ func DisplayCommands(wf *Workflow) {
 	if q, ok := wf.GetQueries(); ok {
 		if q.Len() == 1 {
 			views = FilterMap(views, func(name string, v *View) bool {
-				return name != ListCommandsName && strings.Contains(name, q.First())
+				return name != ListCommandsName && strings.Contains(name, q.First()) && !v.IsCli
 			})
 			// complete match, invoke view directly
 			if len(views) == 1 && views[q.First()] != nil && !views[q.First()].NeedsQuery {
@@ -25,7 +25,10 @@ func DisplayCommands(wf *Workflow) {
 
 func display(wf *Workflow) {
 	var names []string
-	for k := range views {
+	for k, v := range views {
+		if v.IsCli {
+			continue
+		}
 		names = append(names, k)
 	}
 	sort.Strings(names)
@@ -47,18 +50,12 @@ func display(wf *Workflow) {
 
 func invoke(q Queries) {
 	name := q.First()
-	var newWf Workflow
+	var newWf *Workflow
 	if q.Len() > 1 {
-		newWf = Workflow{
-			Cmd:   name,
-			Query: q.Second(),
-		}
+		newWf = newWorkflow(name, q.Second())
 	} else {
-		newWf = Workflow{
-			Cmd:   name,
-			Query: "",
-		}
+		newWf = newWorkflow(name, "")
 	}
-	execute(&newWf)
+	execute(newWf)
 	os.Exit(0)
 }

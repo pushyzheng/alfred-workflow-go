@@ -19,11 +19,7 @@ func Run() {
 	flag.Parse()
 	log.Printf("main exec, cmd = %s, query = %s", *cmd, *query)
 
-	wf := Workflow{
-		Cmd:   *cmd,
-		Query: *query,
-	}
-	execute(&wf)
+	execute(newWorkflow(*cmd, *query))
 }
 
 func execute(wf *Workflow) {

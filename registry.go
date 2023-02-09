@@ -85,4 +85,9 @@ func init() {
 		Func:  displayTask,
 		IsCli: true,
 	})
+	Register(&View{
+		Name:  "cache_delete",
+		Func:  deleteCache,
+		IsCli: true,
+	})
 }

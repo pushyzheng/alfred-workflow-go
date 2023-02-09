@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"os"
 	"strings"
 )
@@ -15,9 +16,10 @@ type StringMap map[string]string
 type AnyMap map[string]interface{}
 
 type Workflow struct {
-	Cmd   string
-	Query string
-	Items []Item
+	Cmd    string
+	Query  string
+	Items  []Item
+	Logger *logrus.Logger
 }
 
 type Item struct {
@@ -38,6 +40,17 @@ type ModItem struct {
 
 type Queries struct {
 	Values []string
+}
+
+func newWorkflow(cmd string, q string) *Workflow {
+	wf := Workflow{
+		Cmd:   cmd,
+		Query: q,
+	}
+	logger := logrus.New()
+	logger.Out = os.Stdout
+	wf.Logger = logger
+	return &wf
 }
 
 func (wf *Workflow) GetQuery() (string, bool) {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/pushyzheng/diskache"
+	"github.com/sirupsen/logrus"
 	"log"
 	"time"
 )
@@ -15,6 +16,8 @@ const (
 	schedulerRunCmd        = "scheduler_run"
 	schedulerListCmd       = "scheduler_list"
 )
+
+var taskLog = NewFileLogger("task")
 
 type TaskScheduler struct {
 	LoopInterval time.Duration
@@ -28,8 +31,9 @@ type TaskOption struct {
 }
 
 type Task struct {
-	Name string
-	Op   *TaskOption
+	Name   string
+	Op     *TaskOption
+	Logger *logrus.Logger
 }
 
 var scheduler *TaskScheduler
@@ -45,8 +49,9 @@ func RegisterTask(name string, op *TaskOption) error {
 		return fmt.Errorf("illegal interval: %d", op.Interval)
 	}
 	task := Task{
-		Name: name,
-		Op:   op,
+		Name:   name,
+		Op:     op,
+		Logger: taskLog,
 	}
 	scheduler.tasks[name] = &task
 	return nil
@@ -54,7 +59,7 @@ func RegisterTask(name string, op *TaskOption) error {
 
 func (s *TaskScheduler) loop(times int) error {
 	if len(s.tasks) == 0 {
-		log.Println("[warn] no any tasks, program exits.")
+		taskLog.Warn("no any tasks, program exits.")
 		return nil
 	}
 	var i = 0
@@ -64,7 +69,7 @@ func (s *TaskScheduler) loop(times int) error {
 		}
 		s.runTasks()
 		i++
-		log.Printf("scheduler loop, next time: %d", GetTimestamp()+s.LoopInterval.Milliseconds())
+		taskLog.Infof("scheduler loop, next time: %d", GetTimestamp()+s.LoopInterval.Milliseconds())
 		time.Sleep(s.LoopInterval)
 	}
 	return nil
@@ -79,7 +84,11 @@ func (s *TaskScheduler) runTasks() {
 		now := GetTimestamp()
 		if last, ok := timeTable[name]; ok {
 			if (now - last) >= task.Op.Interval.Milliseconds() {
-				log.Printf("the task should be scheduled, last = %d, interval = %d", last, task.Op.Interval.Milliseconds())
+				taskLog.WithFields(logrus.Fields{
+					"name":     name,
+					"last":     last,
+					"interval": task.Op.Interval.Milliseconds(),
+				}).Info("the task should be scheduled")
 				task.run()
 				timeTable[name] = now
 			}
@@ -115,31 +124,18 @@ func (s *TaskScheduler) getTask(name string) *Task {
 }
 
 func (t *Task) run() {
-	log.Printf("run task, name = %s", t.Name)
+	taskLog.WithField("name", t.Name).Info("run task")
 	if t.Op.Executor == nil {
 		return
 	}
 	start := GetTimestamp()
 	go func() {
 		t.Op.Executor(t)
-		log.Printf("task finished, name = %s, cost = %dms", t.Name, GetTimestamp()-start)
+		taskLog.WithFields(logrus.Fields{
+			"name": t.Name,
+			"cost": GetTimestamp() - start,
+		}).Info("task finished")
 	}()
-}
-
-func displayTask(wf *Workflow) {
-	table, err := scheduler.getTimeTable()
-	if err != nil {
-		panic(err)
-	}
-	i := 0
-	for name, task := range scheduler.tasks {
-		if last, ok := table[name]; ok {
-			fmt.Printf("[%d] %s - next time: %d\n", i, name, last+task.Op.Interval.Milliseconds())
-		} else {
-			fmt.Printf("[%d] %s - next time: %d\n", i, name, GetTimestamp()+task.Op.Interval.Milliseconds())
-		}
-		i++
-	}
 }
 
 func newTaskScheduler() *TaskScheduler {
