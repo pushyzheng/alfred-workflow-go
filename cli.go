@@ -2,18 +2,30 @@ package alfred
 
 import (
 	"fmt"
-	"log"
 )
+
+func getCache(wf *Workflow) {
+	if k, ok := wf.GetQuery(); !ok {
+		wf.Logger.Error("error: the cache key cannot be empty")
+	} else {
+		v, ok := cache.GetStr(k)
+		if !ok {
+			wf.Logger.Warnf("The cache of %s don't exists", k)
+		} else {
+			wf.Logger.Infof("The value of cache(%s) is: \n%s", k, v)
+		}
+	}
+}
 
 func deleteCache(wf *Workflow) {
 	if k, ok := wf.GetQuery(); !ok {
-		log.Fatalln("error: no cache key")
+		wf.Logger.Error("error: the cache key cannot be empty")
 	} else {
 		ok = cache.Delete(k)
 		if !ok {
-			log.Fatalln("fail to delete cache, key =", k)
+			wf.Logger.Error("fail to delete cache, key =", k)
 		} else {
-			log.Println("delete cache succeed, key =", k)
+			wf.Logger.Info("delete cache succeed, key =", k)
 		}
 	}
 }

@@ -69,7 +69,7 @@ func SetCacheData(k string, expired int64, data []byte) {
 		err = cache.SetExpired(k, data, expired)
 	}
 	if err != nil {
-		log.Printf("error: set cache error, key = %s", k)
+		cacheLog.WithField("key", k).Errorf("set cache error")
 	}
 }
 

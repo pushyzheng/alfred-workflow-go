@@ -4,21 +4,30 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
+	"github.com/sirupsen/logrus"
+	"os"
+)
+
+var (
+	cmd    = flag.String("cmd", "", "Input the cmd type")
+	query  = flag.String("query", None, "Input the query string")
+	debug  = flag.Bool("debug", false, "Input the debug mode")
+	logger *logrus.Logger
 )
 
 func Run() {
+	flag.Parse()
+	if isDebug() {
+		logger.SetLevel(logrus.DebugLevel)
+		logger.Debug("Debug mode is open")
+	}
+	logger.WithFields(logrus.Fields{"cmd": *cmd, "query": *query}).Info("main exec")
+
 	var names []string
 	for name := range views {
 		names = append(names, name)
 	}
-	log.Println("register views:", names)
-
-	cmd := flag.String("cmd", "", "Input the cmd type")
-	query := flag.String("query", None, "Input the query string")
-	flag.Parse()
-	log.Printf("main exec, cmd = %s, query = %s", *cmd, *query)
-
+	logger.Info("register views:", names)
 	execute(newWorkflow(*cmd, *query))
 }
 
@@ -33,13 +42,17 @@ func execute(wf *Workflow) {
 	}
 	view.Func(wf)
 	if !view.IsCli {
-		fmt.Println(wf.Render())
+		if isDebug() {
+			fmt.Println(wf.RenderDebug())
+		} else {
+			fmt.Println(wf.Render())
+		}
 	}
 }
 
 func handleErr(wf *Workflow) {
 	if err := recover(); err != nil {
-		log.Println("main exec error:", err)
+		logger.Error("main exec error:", err)
 		var msg string
 		switch err.(type) {
 		case error:
@@ -49,6 +62,20 @@ func handleErr(wf *Workflow) {
 		default:
 			msg = "unexpected type"
 		}
-		fmt.Println(wf.RenderError(errors.New(fmt.Sprintf("error: %s", msg))))
+		e := errors.New(fmt.Sprintf("error: %s", msg))
+		if isDebug() {
+			fmt.Println(wf.RenderDebugError(e))
+		} else {
+			fmt.Println(wf.RenderError(e))
+		}
 	}
+}
+
+func isDebug() bool {
+	return *debug
+}
+
+func init() {
+	logger = logrus.New()
+	logger.Out = os.Stdout
 }

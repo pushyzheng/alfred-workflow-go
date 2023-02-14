@@ -70,6 +70,8 @@ func SearchView(q string, mode string) []*View {
 
 func init() {
 	RegisterView(ListCommandsName, DisplayCommands)
+
+	// cli
 	Register(&View{
 		Name: schedulerRunCmd,
 		Func: func(wf *Workflow) {
@@ -88,6 +90,11 @@ func init() {
 	Register(&View{
 		Name:  "cache_delete",
 		Func:  deleteCache,
+		IsCli: true,
+	})
+	Register(&View{
+		Name:  "cache_get",
+		Func:  getCache,
 		IsCli: true,
 	})
 }
