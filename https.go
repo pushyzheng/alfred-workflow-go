@@ -3,8 +3,10 @@ package alfred
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -22,7 +24,7 @@ func HttpGet(url string, headers map[string]string) string {
 		"method":   "GET",
 		"url":      url,
 		"response": resp,
-	}).Infof("HttpGet")
+	}).Infof("HTTP get request")
 	return resp
 }
 
@@ -58,7 +60,7 @@ func HttpPost(url string, headers map[string]string, raw string) string {
 		"url":      url,
 		"raw":      raw,
 		"response": resp,
-	}).Infof("HttpPost")
+	}).Infof("HTTP post request")
 	return resp
 }
 
@@ -99,4 +101,12 @@ func doRequest(req *http.Request, headers map[string]string) string {
 		panic(err)
 	}
 	return string(b)
+}
+
+func BuildUrl(base string, params StringMap) string {
+	values := url.Values{}
+	for k, v := range params {
+		values.Set(k, v)
+	}
+	return fmt.Sprintf("%s?%s", base, values.Encode())
 }

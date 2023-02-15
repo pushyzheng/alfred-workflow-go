@@ -4,30 +4,31 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"os"
+
+	"github.com/sirupsen/logrus"
 )
 
 var (
-	cmd    = flag.String("cmd", "", "Input the cmd type")
-	query  = flag.String("query", None, "Input the query string")
-	debug  = flag.Bool("debug", false, "Input the debug mode")
-	logger *logrus.Logger
+	cmd     = flag.String("cmd", "", "Input the cmd type")
+	query   = flag.String("query", None, "Input the query string")
+	debug   = flag.Bool("debug", false, "Input the debug mode")
+	mainLog *logrus.Logger
 )
 
 func Run() {
 	flag.Parse()
 	if isDebug() {
-		logger.SetLevel(logrus.DebugLevel)
-		logger.Debug("Debug mode is open")
+		mainLog.SetLevel(logrus.DebugLevel)
+		mainLog.Debug("Debug mode is open")
 	}
-	logger.WithFields(logrus.Fields{"cmd": *cmd, "query": *query}).Info("main exec")
+	mainLog.WithFields(logrus.Fields{"cmd": *cmd, "query": *query}).Info("main exec")
 
 	var names []string
 	for name := range views {
 		names = append(names, name)
 	}
-	logger.Info("register views:", names)
+	mainLog.Info("register views:", names)
 	execute(newWorkflow(*cmd, *query))
 }
 
@@ -52,7 +53,7 @@ func execute(wf *Workflow) {
 
 func handleErr(wf *Workflow) {
 	if err := recover(); err != nil {
-		logger.Error("main exec error:", err)
+		mainLog.Error("main exec error:", err)
 		var msg string
 		switch err.(type) {
 		case error:
@@ -76,6 +77,10 @@ func isDebug() bool {
 }
 
 func init() {
-	logger = logrus.New()
-	logger.Out = os.Stdout
+	mainLog = logrus.New()
+	mainLog.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
+	mainLog.Out = os.Stderr
 }

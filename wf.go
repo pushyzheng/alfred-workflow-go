@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"os"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 const None = "none"
@@ -47,7 +48,7 @@ func newWorkflow(cmd string, q string) *Workflow {
 		Cmd:   cmd,
 		Query: q,
 	}
-	wf.Logger = logger
+	wf.Logger = mainLog
 	return &wf
 }
 

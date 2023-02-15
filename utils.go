@@ -2,11 +2,12 @@ package alfred
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"log"
 	"os"
 	"path"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 const (

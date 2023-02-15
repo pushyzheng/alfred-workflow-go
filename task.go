@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/pushyzheng/diskache"
-	"github.com/sirupsen/logrus"
 	"log"
 	"time"
+
+	"github.com/pushyzheng/diskache"
+	"github.com/sirupsen/logrus"
 )
 
 const (
