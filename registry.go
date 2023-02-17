@@ -18,6 +18,7 @@ type View struct {
 	Func       ViewFunc
 	Desc       string
 	NeedsQuery bool
+	IsCli      bool
 }
 
 var views = map[string]*View{}
@@ -36,11 +37,11 @@ func RegisterView(name string, fn ViewFunc) {
 		Name: name,
 		Func: fn,
 	}
-	Register(v)
+	Register(&v)
 }
 
-func Register(view View) {
-	views[view.Name] = &view
+func Register(view *View) {
+	views[view.Name] = view
 }
 
 func GetView(name string) (*View, bool) {
@@ -69,4 +70,31 @@ func SearchView(q string, mode string) []*View {
 
 func init() {
 	RegisterView(ListCommandsName, DisplayCommands)
+
+	// cli
+	Register(&View{
+		Name: schedulerRunCmd,
+		Func: func(wf *Workflow) {
+			err := scheduler.loop(-1)
+			if err != nil {
+				log.Fatalln(err)
+			}
+		},
+		IsCli: true,
+	})
+	Register(&View{
+		Name:  schedulerListCmd,
+		Func:  displayTask,
+		IsCli: true,
+	})
+	Register(&View{
+		Name:  "cache_delete",
+		Func:  deleteCache,
+		IsCli: true,
+	})
+	Register(&View{
+		Name:  "cache_get",
+		Func:  getCache,
+		IsCli: true,
+	})
 }

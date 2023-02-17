@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 const None = "none"
@@ -15,9 +17,10 @@ type StringMap map[string]string
 type AnyMap map[string]interface{}
 
 type Workflow struct {
-	Cmd   string
-	Query string
-	Items []Item
+	Cmd    string
+	Query  string
+	Items  []Item
+	Logger *logrus.Logger
 }
 
 type Item struct {
@@ -38,6 +41,15 @@ type ModItem struct {
 
 type Queries struct {
 	Values []string
+}
+
+func newWorkflow(cmd string, q string) *Workflow {
+	wf := Workflow{
+		Cmd:   cmd,
+		Query: q,
+	}
+	wf.Logger = mainLog
+	return &wf
 }
 
 func (wf *Workflow) GetQuery() (string, bool) {
@@ -125,6 +137,28 @@ func (wf *Workflow) Render() string {
 	return string(b)
 }
 
+func (wf *Workflow) RenderDebug() string {
+	fmt.Println()
+	if len(wf.Items) == 0 {
+		errMsg := NoAnyResult
+		if q, exists := wf.GetQuery(); exists {
+			errMsg = fmt.Sprintf("%s: %s", NoAnyResult, q)
+		}
+		return errMsg
+	}
+	var outputs []string
+	for i, item := range wf.Items {
+		var line string
+		if item.SubTitle == "" {
+			line = fmt.Sprintf("[%d] %s\n    Arg: %s\n", i, item.Title, item.Arg)
+		} else {
+			line = fmt.Sprintf("[%d] %s\n    %s\n    Arg: %s\n", i, item.Title, item.SubTitle, item.Arg)
+		}
+		outputs = append(outputs, line)
+	}
+	return strings.Join(outputs, "\n")
+}
+
 func (wf *Workflow) RenderError(err error) string {
 	m := AnyMap{}
 	item := StringMap{}
@@ -136,6 +170,11 @@ func (wf *Workflow) RenderError(err error) string {
 		return fmt.Sprintf("{\"items\":[{\"title\":\"%s\"}]}", err.Error())
 	}
 	return string(b)
+}
+
+func (wf *Workflow) RenderDebugError(err error) string {
+	fmt.Println()
+	return err.Error()
 }
 
 func (i *Item) SetCmd(item ModItem) {
