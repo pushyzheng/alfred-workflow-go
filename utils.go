@@ -1,6 +1,7 @@
 package alfred
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -59,6 +60,13 @@ func FilterMap[T any](data map[string]T, fn func(k string, v T) bool) map[string
 		}
 	}
 	return result
+}
+
+func FromJsonStr[T any](s string, data *T) {
+	err := json.Unmarshal([]byte(s), data)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func NewFileLogger(name string) *logrus.Logger {
