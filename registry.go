@@ -21,8 +21,10 @@ type View struct {
 	IsCli      bool
 }
 
+// views: the registry implemented with memory map.
 var views = map[string]*View{}
 
+// RegisterView Registers a view function to registry with name
 func RegisterView(name string, fn ViewFunc) {
 	if len(name) == 0 {
 		log.Fatalln("the name cannot be empty")
@@ -40,16 +42,17 @@ func RegisterView(name string, fn ViewFunc) {
 	Register(&v)
 }
 
+// Register Registers a View to registry
 func Register(view *View) {
 	views[view.Name] = view
 }
 
-func GetView(name string) (*View, bool) {
+func getView(name string) (*View, bool) {
 	vh, ok := views[name]
 	return vh, ok
 }
 
-func SearchView(q string, mode string) []*View {
+func searchView(q string, mode string) []*View {
 	if mode == "" {
 		mode = SearchContainsMode
 	}
@@ -68,6 +71,7 @@ func SearchView(q string, mode string) []*View {
 	return res
 }
 
+// init Registers some built-in views.
 func init() {
 	RegisterView(ListCommandsName, DisplayCommands)
 

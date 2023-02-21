@@ -42,14 +42,20 @@ func ParseTime(s string) time.Time {
 	return date
 }
 
-func FilterSlice[T any](data []T, fn func(v T) bool) []T {
+func FilterSlice[T any](data []T, fn func(i int, v T) bool) []T {
 	var result []T
-	for _, v := range data {
-		if fn(v) {
+	for i, v := range data {
+		if fn(i, v) {
 			result = append(result, v)
 		}
 	}
 	return result
+}
+
+func LimitSlice[T any](data []T, num int) []T {
+	return FilterSlice(data, func(i int, v T) bool {
+		return i < num
+	})
 }
 
 func FilterMap[T any](data map[string]T, fn func(k string, v T) bool) map[string]T {

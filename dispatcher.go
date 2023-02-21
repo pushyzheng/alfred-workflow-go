@@ -37,7 +37,7 @@ func execute(wf *Workflow) {
 	if wf.Cmd == "" {
 		panic(errors.New("command cannot be empty"))
 	}
-	view, ok := GetView(wf.Cmd)
+	view, ok := getView(wf.Cmd)
 	if !ok {
 		panic(fmt.Errorf("unknown cmd: %s", wf.Cmd))
 	}
