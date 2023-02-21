@@ -69,6 +69,16 @@ func FromJsonStr[T any](s string, data *T) {
 	}
 }
 
+func FileExists(f string) bool {
+	if len(f) == 0 {
+		return false
+	}
+	if _, err := os.Stat(f); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
 func NewFileLogger(name string) *logrus.Logger {
 	if _, err := os.Stat(LogBaseDir); os.IsNotExist(err) {
 		err := os.MkdirAll(LogBaseDir, os.ModePerm)
@@ -79,11 +89,14 @@ func NewFileLogger(name string) *logrus.Logger {
 	logPath := path.Join(LogBaseDir, fmt.Sprintf("%s.log", name))
 	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)
 	nl := logrus.New()
+	nl.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
 	if err == nil {
 		nl.Out = file
 	} else {
 		fmt.Printf("error: Failed to log to file, name = %s", name)
 	}
-	nl.WithField("name", name).Infof("init log succeed")
 	return nl
 }

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -83,6 +84,34 @@ func HttpPostJsonBody(url string, headers map[string]string, jsonBody any) strin
 	}
 	req.Header.Set("Content-Type", "application/json;charset=UTF-8")
 	return doRequest(req, headers)
+}
+
+//goland:noinspection GoUnhandledErrorResult
+func HttpDownloadFile(url string, filepath string) error {
+	httpLog.WithFields(logrus.Fields{
+		"method":   "GET",
+		"url":      url,
+		"filepath": filepath,
+	}).Infof("HTTP download file")
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	err = os.MkdirAll(filepath[:strings.LastIndex(filepath, "/")], os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	file, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	_, err = io.Copy(file, resp.Body)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func doRequest(req *http.Request, headers map[string]string) string {

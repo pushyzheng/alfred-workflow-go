@@ -83,6 +83,11 @@ func init() {
 		IsCli: true,
 	})
 	Register(&View{
+		Name:  "hook",
+		Func:  hookCli,
+		IsCli: true,
+	})
+	Register(&View{
 		Name:  schedulerListCmd,
 		Func:  displayTask,
 		IsCli: true,

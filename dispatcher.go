@@ -28,7 +28,7 @@ func Run() {
 	for name := range views {
 		names = append(names, name)
 	}
-	mainLog.Info("register views:", names)
+	mainLog.Debug("register views:", names)
 	execute(newWorkflow(*cmd, *query))
 }
 

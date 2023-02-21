@@ -28,9 +28,14 @@ type Item struct {
 	SubTitle     string             `json:"subtitle"`
 	Arg          string             `json:"arg"`
 	Autocomplete string             `json:"autocomplete"`
-	Icon         string             `json:"icon"`
+	Icon         Icon               `json:"icon"`
 	QuickLookUrl string             `json:"quicklookurl"`
 	Mods         map[string]ModItem `json:"mods"`
+}
+
+type Icon struct {
+	Path string `json:"path"`
+	Type string `json:"type"`
 }
 
 type ModItem struct {
@@ -175,6 +180,12 @@ func (wf *Workflow) RenderError(err error) string {
 func (wf *Workflow) RenderDebugError(err error) string {
 	fmt.Println()
 	return err.Error()
+}
+
+func (i *Item) SetIcon(path string) {
+	i.Icon = Icon{
+		Path: path,
+	}
 }
 
 func (i *Item) SetCmd(item ModItem) {

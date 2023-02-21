@@ -17,17 +17,12 @@ func CacheData[T any](k string, loader func() T) (T, bool) {
 	return CacheExpiredData(k, -1, loader)
 }
 
-func CacheDataRefreshAsync[T any](k string, loader func() T) (T, bool) {
-	ret, hit := CacheExpiredData(k, -1, loader)
-	if hit {
-		go func() {
-			cacheLog.WithFields(logrus.Fields{
-				"key": k,
-			}).Info("cache data refresh async")
-			loader()
-		}()
-	}
-	return ret, hit
+func CacheDataRefresh[T any](k string, loader func() T) {
+	cacheLog.WithFields(logrus.Fields{
+		"key": k,
+	}).Info("cache data refresh")
+	res := loader()
+	SetCacheJsonData(k, -1, res)
 }
 
 func CacheExpiredData[T any](k string, expired int64, loader func() T) (T, bool) {
